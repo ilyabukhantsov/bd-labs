@@ -1,3 +1,3 @@
-# bd-labs
+# Repository for Submitting Database Lab Assignments
 
-#Check Init
+By Ilya Bukhantsov
