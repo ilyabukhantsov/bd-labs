@@ -1,15 +1,16 @@
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+FROM python:3.12
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y build-essential libpq-dev
-
+# Копируем зависимости и устанавливаем
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
+# Копируем весь проект
 COPY . .
 
-CMD ["gunicorn", "liquidpedia_clone.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Делаем entrypoint исполняемым
+RUN chmod +x /app/entrypoint.sh
+
+# Запуск entrypoint
+ENTRYPOINT ["/app/entrypoint.sh"]

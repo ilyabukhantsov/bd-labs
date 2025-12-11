@@ -4,3 +4,5 @@ from .views import InsertDispatcher
 urlpatterns = [
     path("<str:action>/", InsertDispatcher.as_view(), name="insert-dispatcher"),
 ]
+
+

@@ -6,7 +6,7 @@ from rest_framework import status
 
 class TournamentListView(APIView):
     def get(self, request):
-        tournaments = Tournament.objects.all()   # ← ВЗЯТЬ ДАННЫЕ ИЗ SQLite
+        tournaments = Tournament.objects.all()
         serializer = TournamentSerializer(tournaments, many=True)
         return Response(serializer.data)
 
