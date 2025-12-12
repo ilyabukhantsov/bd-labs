@@ -1,7 +1,19 @@
 from django.db import models
 from django.core.validators import MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
+class SoftDeleteModel(models.Model):
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        abstract = True
+
+    def soft_delete(self):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save()
 
 class Tournament(models.Model):
     name = models.CharField(max_length=100)
@@ -23,18 +35,27 @@ class Tournament(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=100, unique=True)
     logo = models.BinaryField(blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(blank=True, null=True)
 
-    def __str__(self):
-        return self.name
+    def soft_delete(self):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save()
 
 
 class Player(models.Model):
     nick = models.CharField(max_length=50, unique=True)
     age = models.PositiveIntegerField(validators=[MinValueValidator(12)])
+    
+    # поля для soft delete
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(blank=True, null=True)
 
-    def __str__(self):
-        return self.nick
-
+    def soft_delete(self):
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.save()
 
 class Roster(models.Model):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='rosters')
@@ -119,3 +140,5 @@ class PlayerPrize(models.Model):
 
     def __str__(self):
         return f"{self.player.nick} prize {self.place} in {self.tournament}"
+
+
