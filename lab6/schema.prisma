@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model match {
+  id          Int          @id @default(autoincrement())
+  tournament_id Int
+  score       String?      @db.VarChar(20)
+  venue_id    Int? 
+  tournament  tournament   @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+  match_team  match_team[]
+  match_event match_event[]
+  match_referee match_referee[]
+  venue       venue?       @relation(fields: [venue_id], references: [id], onDelete: SetNull)
+}
+
+model match_event {
+  id         Int       @id @default(autoincrement())
+  match_id   Int
+  event_type EventType
+  minute     Int
+  match      match     @relation(fields: [match_id], references: [id], onDelete: Cascade)
+}
+
+model match_team {
+  match_id Int
+  team_id  Int
+  match    match @relation(fields: [match_id], references: [id], onDelete: Cascade)
+  team     team  @relation(fields: [team_id], references: [id], onDelete: Cascade)
+
+  @@id([match_id, team_id])
+}
+
+/// Игроки
+model player {
+  id            Int             @id @default(autoincrement())
+  nick          String          @unique @db.VarChar(50)
+  age           Int
+  status        String          @default("active") @db.VarChar(20)  // новое поле
+  player_prize  player_prize[]
+  roster_player roster_player[]
+}
+
+model player_prize {
+  id            Int        @id @default(autoincrement())
+  player_id     Int
+  tournament_id Int
+  place         String?    @db.VarChar(20)
+  money         Decimal    @db.Decimal(12, 2)
+  player        player     @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  tournament    tournament @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+}
+
+model roster {
+  id                 Int                  @id @default(autoincrement())
+  team_id            Int
+  start_date         DateTime             @db.Date
+  end_date           DateTime?            @db.Date
+  team               team                 @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  roster_player      roster_player[]
+  team_active_roster team_active_roster[]
+  team_prize         team_prize[]
+}
+
+model roster_player {
+  roster_id Int
+  player_id Int
+  player    player @relation(fields: [player_id], references: [id], onDelete: Cascade)
+  roster    roster @relation(fields: [roster_id], references: [id], onDelete: Cascade)
+
+  @@id([roster_id, player_id])
+}
+
+model team {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @unique @db.VarChar(100)
+  logo               Bytes?
+  description        String?              // новое поле
+  match_team         match_team[]
+  roster             roster[]
+  team_active_roster team_active_roster[]
+}
+
+model team_active_roster {
+  team_id    Int
+  roster_id  Int
+  start_date DateTime  @db.Date
+  end_date   DateTime? @db.Date
+  roster     roster    @relation(fields: [roster_id], references: [id], onDelete: Cascade)
+  team       team      @relation(fields: [team_id], references: [id], onDelete: Cascade)
+
+  @@id([team_id, roster_id])
+}
+
+model team_prize {
+  id            Int        @id @default(autoincrement())
+  tournament_id Int
+  roster_id     Int
+  place         String     @db.VarChar(20)
+  money         Decimal    @db.Decimal(12, 2)
+  roster        roster     @relation(fields: [roster_id], references: [id], onDelete: Cascade)
+  tournament    tournament @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+}
+
+model tournament {
+  id         Int            @id @default(autoincrement())
+  name       String         @db.VarChar(100)
+  start_date DateTime       @db.Date
+  prize      Decimal        @db.Decimal(12, 2)
+  match      match[]
+  player_prize player_prize[]
+  team_prize team_prize[]
+
+  @@unique([name])
+}
+
+/// Новые таблицы
+
+model referee {
+  id               Int              @id @default(autoincrement())
+  name             String           @db.VarChar(100)
+  experience_years Int
+  match_referee    match_referee[]
+}
+
+model match_referee {
+  match_id   Int
+  referee_id Int
+  match      match   @relation(fields: [match_id], references: [id], onDelete: Cascade)
+  referee    referee @relation(fields: [referee_id], references: [id], onDelete: Cascade)
+
+  @@id([match_id, referee_id])
+}
+
+model venue {
+  id       Int      @id @default(autoincrement())
+  name     String   @db.VarChar(100)
+  location String   @db.VarChar(200)
+  match    match[]
+}
+
+enum EventType {
+  goal
+  yellow_card
+  red_card
+  substitution
+}
