@@ -1,17 +1,20 @@
 #!/bin/bash
 set -e
 
-# Перейти в рабочую директорию
 cd /app
 
-# Если manage.py нет — создаём проект Django
 if [ ! -f "manage.py" ]; then
-    echo "Creating Django project..."
+    echo "Creating Django project (Skipping in production/test context usually)..."
     django-admin startproject core .
 fi
 
-# Применяем миграции
 python manage.py migrate --noinput
 
-# Запускаем сервер
-python manage.py runserver 0.0.0.0:8000
+
+if [ "$#" -gt 0 ]; then
+    echo "Executing command: $@"
+    exec "$@"
+else
+    echo "No command provided. Starting Django development server..."
+    exec python manage.py runserver 0.0.0.0:8000
+fi

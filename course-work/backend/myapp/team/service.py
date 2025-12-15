@@ -12,7 +12,7 @@ def create_team_with_roster(team_name, logo_bytes, players_data, roster_start_da
 
             # 2. roster
             roster = Roster(team=team, start_date=roster_start_date, end_date=roster_end_date)
-            roster.clean()  # Валидация
+            roster.clean()
             roster.save()
 
             # 3. player

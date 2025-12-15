@@ -5,17 +5,22 @@ from .team.service import create_team_with_roster
 from .team.service import update_team_and_roster
 from .team.service import hard_delete_team
 from .team.service import soft_delete_player
+from .team.player_analytics import get_players_above_18
+from .team.player_analytics import get_players_alphabetical
+from .team.player_analytics import get_team_players_analytics
+
+from django.db import connection
+from .models import Player
+
+
 
 class CreateTeamAPIView(APIView):
-    """
-    Создание команды с ростером, игроками и активным ростером
-    """
 
     def post(self, request):
         data = request.data
 
         team_name = data.get("team_name")
-        logo_bytes = data.get("logo_bytes")  # можно Base64
+        logo_bytes = data.get("logo_bytes")
         roster_start_date = data.get("roster_start_date")
         roster_end_date = data.get("roster_end_date", None)
         players_data = data.get("players", [])
@@ -37,9 +42,7 @@ class CreateTeamAPIView(APIView):
         return Response(result, status=status.HTTP_201_CREATED)
 
 class UpdateTeamAPIView(APIView):
-    """
-    Обновление команды, её ростера и игроков
-    """
+
 
     def post(self, request):
         data = request.data
@@ -73,3 +76,18 @@ class SoftDeletePlayerAPIView(APIView):
         if "error" in result:
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         return Response(result, status=status.HTTP_200_OK)
+
+
+class PlayersAbove18APIView(APIView):
+    def get(self, request):
+        return Response(get_players_above_18(), status=status.HTTP_200_OK)
+
+
+class PlayersAlphabeticalAPIView(APIView):
+    def get(self, request):
+        return Response(get_players_alphabetical(), status=status.HTTP_200_OK)
+
+
+class TeamPlayersAnalyticsAPIView(APIView):
+    def get(self, request):
+        return Response(get_team_players_analytics(), status=status.HTTP_200_OK)
