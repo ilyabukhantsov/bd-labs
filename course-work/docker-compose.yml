@@ -18,32 +18,13 @@ services:
       start_period: 10s
 
   web:
-    # 1. Основной сервис для запуска сервера
     build: ./backend
-    # Явно указываем команду для запуска сервера в обычном режиме
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app
     ports:
       - "8000:8000"
     environment:
-      # Добавляем переменные окружения БД, которые нужны Django
-      DB_NAME: mydb
-      DB_USER: myuser
-      DB_PASS: mypass
-      DB_HOST: db # Имя сервиса БД
-      DB_PORT: 5432
-    depends_on:
-      db:
-        condition: service_healthy
-
-  test:
-    # 2. Специальный сервис для запуска тестов
-    build: ./backend # Используем тот же Dockerfile
-    volumes:
-      - ./backend:/app # Монтируем те же файлы
-    environment:
-      # Настройки БД, необходимые для тестов
       DB_NAME: mydb
       DB_USER: myuser
       DB_PASS: mypass
@@ -51,7 +32,21 @@ services:
       DB_PORT: 5432
     depends_on:
       db:
-        condition: service_healthy # Ожидаем готовности БД
+        condition: service_healthy
+
+  test:
+    build: ./backend
+    volumes:
+      - ./backend:/app
+    environment:
+      DB_NAME: mydb
+      DB_USER: myuser
+      DB_PASS: mypass
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
